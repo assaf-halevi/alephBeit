@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>ABCD</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icon-192.png" type="image/png">
+    <link rel="apple-touch-icon" href="icon-512.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            background-color: #f0f0f0;
+            direction: rtl;
+            touch-action: manipulation;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        img {
+            width: 100%;
+            height: 100%;
+            max-width: 80vw;
+            max-height: 80vh;
+            object-fit: contain;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+    </style>
+</head>
+<body>
+    <img id="gameImage" src="A.png" alt="תמונה">
+    <audio id="soundEffect" src="A1.mp3"></audio>
+
+    <script>
+        const images = [
+            { src: "A.png", sound: "A.mp3", altSound: "A1.mp3" },
+            { src: "B.png", sound: "B.mp3", altSound: "B1.mp3" },
+            { src: "C.png", sound: "C.mp3", altSound: "C1.mp3" },
+            { src: "D.png", sound: "D.mp3", altSound: "D1.mp3" },
+            { src: "E.png", sound: "E.mp3", altSound: "E1.mp3" },
+            { src: "F.png", sound: "F.mp3", altSound: "F1.mp3" },
+            { src: "G.png", sound: "G.mp3", altSound: "G1.mp3" },
+            { src: "H.png", sound: "H.mp3", altSound: "H1.mp3" },
+            { src: "I.png", sound: "I.mp3", altSound: "I1.mp3" },
+            { src: "J.png", sound: "J.mp3", altSound: "J1.mp3" },
+            { src: "K.png", sound: "K.mp3", altSound: "K1.mp3" },
+            { src: "L.png", sound: "L.mp3", altSound: "L1.mp3" },
+            { src: "M.png", sound: "M.mp3", altSound: "M1.mp3" },
+            { src: "N.png", sound: "N.mp3", altSound: "N1.mp3" },
+            { src: "O.png", sound: "O.mp3", altSound: "O1.mp3" },
+            { src: "P.png", sound: "P.mp3", altSound: "P1.mp3" },
+            { src: "Q.png", sound: "Q.mp3", altSound: "Q1.mp3" },
+            { src: "R.png", sound: "R.mp3", altSound: "R1.mp3" },
+            { src: "S.png", sound: "S.mp3", altSound: "S1.mp3" },
+            { src: "T.png", sound: "T.mp3", altSound: "T1.mp3" },
+            { src: "U.png", sound: "U.mp3", altSound: "U1.mp3" },
+            { src: "V.png", sound: "V.mp3", altSound: "V1.mp3" },
+            { src: "W.png", sound: "W.mp3", altSound: "W1.mp3" },
+            { src: "X.png", sound: "X.mp3", altSound: "X1.mp3" },
+            { src: "Y.png", sound: "Y.mp3", altSound: "Y1.mp3" },
+            { src: "Z.png", sound: "Z.mp3", altSound: "Z1.mp3" }
+        ];
+
+        let currentIndex = 0;
+        let useAltSound = true;
+        const switchPoints = ['h', 'q', 't', 'w', 'y'];
+        let touchStartTime = 0;
+        let touchStartX = 0;
+        let touchStartY = 0;
+        const touchThreshold = 50;
+        const tapDuration = 1000;
+
+        // Web Audio API setup
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        let soundBuffers = {};
+        let failedSounds = new Set(); // Track sounds that failed to preload
+
+        // Preload all audio files into buffers
+        async function preloadAudio() {
+            for (const item of images) {
+                try {
+                    const soundResponse = await fetch(item.sound);
+                    if (!soundResponse.ok) throw new Error(`HTTP error ${soundResponse.status} for ${item.sound}`);
+                    const altSoundResponse = await fetch(item.altSound);
+                    if (!altSoundResponse.ok) throw new Error(`HTTP error ${altSoundResponse.status} for ${item.altSound}`);
+                    const soundArrayBuffer = await soundResponse.arrayBuffer();
+                    const altSoundArrayBuffer = await altSoundResponse.arrayBuffer();
+                    soundBuffers[item.sound] = await audioContext.decodeAudioData(soundArrayBuffer);
+                    soundBuffers[item.altSound] = await audioContext.decodeAudioData(altSoundArrayBuffer);
+                    console.log(`Loaded: ${item.sound}, ${item.altSound}`);
+                } catch (error) {
+                    console.error(`Failed to preload ${item.sound} or ${item.altSound}:`, error);
+                    failedSounds.add(item.sound);
+                    failedSounds.add(item.altSound);
+                }
+            }
+            console.log('Preloading complete. Failed sounds:', [...failedSounds]);
+        }
+
+        // Play sound using Web Audio API or fallback to <audio>
+        function playSound(soundFile) {
+            if (!failedSounds.has(soundFile) && soundBuffers[soundFile]) {
+                try {
+                    const source = audioContext.createBufferSource();
+                    source.buffer = soundBuffers[soundFile];
+                    source.connect(audioContext.destination);
+                    source.start(0);
+                } catch (error) {
+                    console.error(`Web Audio playback failed for ${soundFile}:`, error);
+                    fallbackPlaySound(soundFile);
+                }
+            } else {
+                console.warn(`Buffer not found for ${soundFile}, using fallback`);
+                fallbackPlaySound(soundFile);
+            }
+        }
+
+        // Fallback to <audio> element
+        function fallbackPlaySound(soundFile) {
+            const soundElement = document.getElementById('soundEffect');
+            soundElement.src = soundFile;
+            soundElement.play().catch((error) => {
+                console.error(`Fallback audio playback failed for ${soundFile}:`, error);
+            });
+        }
+
+        // Initialize audio context and preload sounds
+        let isAudioContextStarted = false;
+        function startAudioContext() {
+            if (!isAudioContextStarted && audioContext.state === 'suspended') {
+                audioContext.resume().then(() => {
+                    isAudioContextStarted = true;
+                    console.log('AudioContext resumed');
+                    preloadAudio().then(() => {
+                        console.log('All audio files preloaded');
+                        // Play initial sound
+                        playSound(images[currentIndex].altSound);
+                    });
+                }).catch((error) => {
+                    console.error('Failed to resume AudioContext:', error);
+                });
+            }
+        }
+
+        function nextImage() {
+            currentIndex = (currentIndex + 1) % images.length;
+            const imgElement = document.getElementById('gameImage');
+
+            const currentLetter = images[currentIndex].src.charAt(0).toLowerCase();
+            if (currentLetter !== 'a' && switchPoints.includes(currentLetter)) {
+                useAltSound = !useAltSound;
+            }
+
+            imgElement.src = images[currentIndex].src;
+            const soundToPlay = useAltSound ? images[currentIndex].altSound : images[currentIndex].sound;
+            playSound(soundToPlay);
+        }
+
+        const imgElement = document.getElementById('gameImage');
+
+        imgElement.addEventListener('touchstart', (e) => {
+            startAudioContext();
+            const touch = e.touches[0];
+            touchStartTime = Date.now();
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+        }, { passive: true });
+
+        imgElement.addEventListener('touchmove', (e) => {
+            const touch = e.touches[0];
+            const deltaX = touch.clientX - touchStartX;
+            const deltaY = touch.clientY - touchStartY;
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+            if (distance > touchThreshold) {
+                nextImage();
+                touchStartTime = 0;
+            }
+        }, { passive: true });
+
+        imgElement.addEventListener('touchend', (e) => {
+            const touchDuration = Date.now() - touchStartTime;
+            const touch = e.changedTouches[0];
+            const deltaX = touch.clientX - touchStartX;
+            const deltaY = touch.clientY - touchStartY;
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+            if (touchDuration < tapDuration && distance < touchThreshold) {
+                nextImage();
+            }
+        }, { passive: true });
+
+        document.addEventListener('touchstart', (e) => {}, { passive: true });
+
+        window.addEventListener('orientationchange', () => {
+            document.body.style.height = window.innerHeight + 'px';
+        });
+    </script>
+</body>
+</html>
