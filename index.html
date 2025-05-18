@@ -7,7 +7,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>ABCD</title>
+    <title>alephBeit</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="icon-192.png" type="image/png">
     <link rel="apple-touch-icon" href="icon-512.png">
@@ -42,42 +42,36 @@
     </style>
 </head>
 <body>
-    <img id="gameImage" src="A.png" alt="תמונה">
-    <audio id="soundEffect" src="A1.mp3"></audio>
+    <img id="gameImage" src="א.png" alt="תמונה">
+    <audio id="soundEffect" src="א.mp3"></audio>
 
     <script>
         const images = [
-            { src: "A.png", sound: "A.mp3", altSound: "A1.mp3" },
-            { src: "B.png", sound: "B.mp3", altSound: "B1.mp3" },
-            { src: "C.png", sound: "C.mp3", altSound: "C1.mp3" },
-            { src: "D.png", sound: "D.mp3", altSound: "D1.mp3" },
-            { src: "E.png", sound: "E.mp3", altSound: "E1.mp3" },
-            { src: "F.png", sound: "F.mp3", altSound: "F1.mp3" },
-            { src: "G.png", sound: "G.mp3", altSound: "G1.mp3" },
-            { src: "H.png", sound: "H.mp3", altSound: "H1.mp3" },
-            { src: "I.png", sound: "I.mp3", altSound: "I1.mp3" },
-            { src: "J.png", sound: "J.mp3", altSound: "J1.mp3" },
-            { src: "K.png", sound: "K.mp3", altSound: "K1.mp3" },
-            { src: "L.png", sound: "L.mp3", altSound: "L1.mp3" },
-            { src: "M.png", sound: "M.mp3", altSound: "M1.mp3" },
-            { src: "N.png", sound: "N.mp3", altSound: "N1.mp3" },
-            { src: "O.png", sound: "O.mp3", altSound: "O1.mp3" },
-            { src: "P.png", sound: "P.mp3", altSound: "P1.mp3" },
-            { src: "Q.png", sound: "Q.mp3", altSound: "Q1.mp3" },
-            { src: "R.png", sound: "R.mp3", altSound: "R1.mp3" },
-            { src: "S.png", sound: "S.mp3", altSound: "S1.mp3" },
-            { src: "T.png", sound: "T.mp3", altSound: "T1.mp3" },
-            { src: "U.png", sound: "U.mp3", altSound: "U1.mp3" },
-            { src: "V.png", sound: "V.mp3", altSound: "V1.mp3" },
-            { src: "W.png", sound: "W.mp3", altSound: "W1.mp3" },
-            { src: "X.png", sound: "X.mp3", altSound: "X1.mp3" },
-            { src: "Y.png", sound: "Y.mp3", altSound: "Y1.mp3" },
-            { src: "Z.png", sound: "Z.mp3", altSound: "Z1.mp3" }
+            { src: "א.png", sound: "א.mp3" },
+            { src: "ב.png", sound: "ב.mp3" },
+            { src: "ג.png", sound: "ג.mp3" },
+            { src: "ד.png", sound: "ד.mp3" },
+            { src: "ה.png", sound: "ה.mp3" },
+            { src: "ו.png", sound: "ו.mp3" },
+            { src: "ז.png", sound: "ז.mp3" },
+            { src: "ח.png", sound: "ח.mp3" },
+            { src: "ט.png", sound: "ט.mp3" },
+            { src: "י.png", sound: "י.mp3" },
+            { src: "כ.png", sound: "כ.mp3" },
+            { src: "ל.png", sound: "ל.mp3" },
+            { src: "מ.png", sound: "מ.mp3" },
+            { src: "נ.png", sound: "נ.mp3" },
+            { src: "ס.png", sound: "ס.mp3" },
+            { src: "ע.png", sound: "ע.mp3" },
+            { src: "פ.png", sound: "פ.mp3" },
+            { src: "צ.png", sound: "צ.mp3" },
+            { src: "ק.png", sound: "ק.mp3" },
+            { src: "ר.png", sound: "ר.mp3" },
+            { src: "ש.png", sound: "ש.mp3" },
+            { src: "ת.png", sound: "ת.mp3" }
         ];
 
         let currentIndex = 0;
-        let useAltSound = true;
-        const switchPoints = ['h', 'q', 't', 'w', 'y'];
         let touchStartTime = 0;
         let touchStartX = 0;
         let touchStartY = 0;
@@ -87,7 +81,7 @@
         // Web Audio API setup
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         let soundBuffers = {};
-        let failedSounds = new Set(); // Track sounds that failed to preload
+        let failedSounds = new Set();
 
         // Preload all audio files into buffers
         async function preloadAudio() {
@@ -95,17 +89,12 @@
                 try {
                     const soundResponse = await fetch(item.sound);
                     if (!soundResponse.ok) throw new Error(`HTTP error ${soundResponse.status} for ${item.sound}`);
-                    const altSoundResponse = await fetch(item.altSound);
-                    if (!altSoundResponse.ok) throw new Error(`HTTP error ${altSoundResponse.status} for ${item.altSound}`);
                     const soundArrayBuffer = await soundResponse.arrayBuffer();
-                    const altSoundArrayBuffer = await altSoundResponse.arrayBuffer();
                     soundBuffers[item.sound] = await audioContext.decodeAudioData(soundArrayBuffer);
-                    soundBuffers[item.altSound] = await audioContext.decodeAudioData(altSoundArrayBuffer);
-                    console.log(`Loaded: ${item.sound}, ${item.altSound}`);
+                    console.log(`Loaded: ${item.sound}`);
                 } catch (error) {
-                    console.error(`Failed to preload ${item.sound} or ${item.altSound}:`, error);
+                    console.error(`Failed to preload ${item.sound}:`, error);
                     failedSounds.add(item.sound);
-                    failedSounds.add(item.altSound);
                 }
             }
             console.log('Preloading complete. Failed sounds:', [...failedSounds]);
@@ -147,8 +136,7 @@
                     console.log('AudioContext resumed');
                     preloadAudio().then(() => {
                         console.log('All audio files preloaded');
-                        // Play initial sound
-                        playSound(images[currentIndex].altSound);
+                        playSound(images[currentIndex].sound);
                     });
                 }).catch((error) => {
                     console.error('Failed to resume AudioContext:', error);
@@ -159,15 +147,8 @@
         function nextImage() {
             currentIndex = (currentIndex + 1) % images.length;
             const imgElement = document.getElementById('gameImage');
-
-            const currentLetter = images[currentIndex].src.charAt(0).toLowerCase();
-            if (currentLetter !== 'a' && switchPoints.includes(currentLetter)) {
-                useAltSound = !useAltSound;
-            }
-
             imgElement.src = images[currentIndex].src;
-            const soundToPlay = useAltSound ? images[currentIndex].altSound : images[currentIndex].sound;
-            playSound(soundToPlay);
+            playSound(images[currentIndex].sound);
         }
 
         const imgElement = document.getElementById('gameImage');
