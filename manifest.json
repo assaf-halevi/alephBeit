@@ -1,12 +1,12 @@
 {
     "name": "alephBeit",
     "short_name": "alephBeit",
-    "start_url": "/",
+    "start_url": "/alephBeit/",
     "display": "fullscreen",
     "background_color": "#f0f0f0",
     "theme_color": "#ffffff",
     "orientation": "portrait",
-    "scope": "/",
+    "scope": "/alephBeit/",
     "icons": [
         {
             "src": "icon.png",
